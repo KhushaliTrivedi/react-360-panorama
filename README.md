@@ -18,8 +18,8 @@ This is a simple and lightweight 360° panorama viewer built with **React** and 
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/your-username/360-panorama-viewer.git
-cd 360-panorama-viewer
+git clone https://github.com/KhushaliTrivedi/react-360-panorama.git
+cd react-360-panorama
 ```
 
 ### 2. Install dependencies
