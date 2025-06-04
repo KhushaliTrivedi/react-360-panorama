@@ -1,28 +1,20 @@
 import { useEffect, useState, useRef } from "react";
 
 const localImages = [
-  "/assets/test.png",
-  "/assets/test7.png",
-  "/assets/test6.png",
-  "/assets/test2.png",
-  "/assets/test3.jpg",
+  "/assets/test1.jpg",
+  "/assets/test2.jpg",
+  "/assets/test3.png",
   "/assets/test4.jpg",
-  "/assets/test5.png",
-  "/assets/test8.jpg",
-  "/assets/test9.jpg",
-  "/assets/test10.jpg",
-  "/assets/test11.png",
-  "/assets/test12.png",
 ];
 
 export default function Panorama() {
   const [viewUrl, setViewUrl] = useState(localImages[0]);
   const [pannellumLoaded, setPannellumLoaded] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [uploadedImage, setUploadedImage] = useState(null);
   const panoContainerRef = useRef(null);
   const viewerRef = useRef(null);
 
-  // Load pannellum script only once
   useEffect(() => {
     if (window.pannellum) {
       setPannellumLoaded(true);
@@ -40,7 +32,6 @@ export default function Panorama() {
     document.head.appendChild(script);
   }, []);
 
-  // Initialization effect stays same
   useEffect(() => {
     if (!pannellumLoaded || !panoContainerRef.current) return;
 
@@ -57,7 +48,6 @@ export default function Panorama() {
     }
   }, [pannellumLoaded, panoContainerRef]);
 
-  // Update image on viewUrl change
   useEffect(() => {
     if (viewerRef.current) {
       viewerRef.current = window.pannellum.viewer(panoContainerRef.current, {
@@ -74,26 +64,28 @@ export default function Panorama() {
 
   useEffect(() => {
     const setHeight = () => {
-      document.documentElement.style.setProperty(
-        "--app-height",
-        `${window.innerHeight}px`
-      );
+      document.documentElement.style.setProperty("--app-height", `${window.innerHeight}px`);
     };
     setHeight();
     window.addEventListener("resize", setHeight);
     return () => window.removeEventListener("resize", setHeight);
   }, []);
 
+  const handleUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (file && file.type.startsWith("image/")) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setUploadedImage(reader.result);
+        setViewUrl(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   return (
-    <div
-      className="relative w-full"
-      style={{ height: "var(--app-height)", overflow: "hidden" }}
-    >
-      <div
-        ref={panoContainerRef}
-        id="panorama"
-        className="absolute inset-0 w-full h-full"
-      />
+    <div className="relative w-full" style={{ height: "var(--app-height)", overflow: "hidden" }}>
+      <div ref={panoContainerRef} id="panorama" className="absolute inset-0 w-full h-full" />
 
       <button
         onClick={() => setDrawerOpen(!drawerOpen)}
@@ -109,7 +101,6 @@ export default function Panorama() {
           border: "none",
           cursor: "pointer",
           userSelect: "none",
-          fontWeight: "bold",
         }}
         aria-label="Toggle panorama thumbnails"
       >
@@ -139,10 +130,10 @@ export default function Panorama() {
           <div
             key={i}
             style={{
-              width: "160px",       // fixed width
-              height: "120px",      // fixed height
+              width: "160px",
+              height: "120px",
               borderRadius: "8px",
-              overflow: "hidden",   // clip overflow
+              overflow: "hidden",
               border: img === viewUrl ? "3px solid #4ade80" : "3px solid transparent",
               cursor: "pointer",
               flexShrink: 0,
@@ -165,7 +156,7 @@ export default function Panorama() {
               style={{
                 width: "100%",
                 height: "100%",
-                objectFit: "cover",  // this makes image cover container area
+                objectFit: "cover",
                 display: "block",
                 userSelect: "none",
               }}
@@ -173,6 +164,63 @@ export default function Panorama() {
             />
           </div>
         ))}
+
+        {/* Uploaded image thumbnail */}
+        {uploadedImage && (
+          <div
+            style={{
+              width: "160px",
+              height: "120px",
+              borderRadius: "8px",
+              overflow: "hidden",
+              border: uploadedImage === viewUrl ? "3px solid #4ade80" : "3px solid transparent",
+              cursor: "pointer",
+              flexShrink: 0,
+              boxSizing: "border-box",
+              transition: "border-color 0.3s",
+            }}
+            onClick={() => setViewUrl(uploadedImage)}
+          >
+            <img
+              src={uploadedImage}
+              alt="Uploaded Thumbnail"
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                display: "block",
+                userSelect: "none",
+              }}
+              draggable={false}
+            />
+          </div>
+        )}
+
+        {/* Upload Image Card */}
+        <label
+          style={{
+            width: "160px",
+            height: "120px",
+            borderRadius: "8px",
+            border: "2px dashed #888",
+            color: "#ccc",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: "pointer",
+            flexShrink: 0,
+            fontSize: "14px",
+            textAlign: "center",
+          }}
+        >
+          Upload Image
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleUpload}
+            style={{ display: "none" }}
+          />
+        </label>
       </div>
     </div>
   );
